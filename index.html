@@ -459,6 +459,7 @@
                 </div>
                 <div class="clue-box" id="clueRoleBox"></div>
                 <div class="fish-card" id="clueSetupCard"></div>
+                <div style="text-align:center;margin:18px 0;color:var(--soft);font-size:0.95rem;" id="passInstruction"></div>
                 <div class="btn-group">
                     <button class="btn btn-primary" id="readyForCluesBtn">Pronto, mostra gli indizi</button>
                 </div>
@@ -483,6 +484,7 @@
 
             <div class="card" id="clueResultView" style="display:none;">
                 <div class="result-box" id="clueResultBox"></div>
+                <div style="text-align:center;margin:18px 0;color:var(--soft);font-size:0.95rem;" id="nextRoundInstruction"></div>
                 <div class="btn-group">
                     <button class="btn btn-primary" id="nextClueRoundBtn">Prossimo turno</button>
                     <button class="btn btn-secondary" id="backToMenuBtn1">Torna al menu</button>
@@ -537,11 +539,11 @@
                 size: '20-40cm',
                 difficulty: 'medium',
                 facts: [
-                    'Ha due fasce nere verticali caratteristiche.',
-                    'Si muove in piccoli branchi lungo fondali cangianti.',
-                    'Preferisce le acque del Giglio e della costa toscana.',
-                    'Si nutre di molluschi e crostacei.',
-                    'Il corpo è robusto e compresso lateralmente.'
+                    'Presenta due distintive fasce nere verticali sul corpo.',
+                    'Corpo compresso lateralmente, tipico dei saraghi.',
+                    'Si nutre principalmente di invertebrati e alghe.',
+                    'Abitante dei fondali sabbiosi e rocciosi della Toscana.',
+                    'Vive in piccoli gruppi familiari.'
                 ]
             },
             {
@@ -571,11 +573,11 @@
                 size: '20-40cm',
                 difficulty: 'medium',
                 facts: [
-                    'Lunga stria dorata lungo il corpo argenteo.',
-                    'Cresce nei fondali del Mediterraneo e al Giglio.',
-                    'Si nutre principalmente di alghe e piante marine.',
-                    'La sua carne ha un sapore molto deciso.',
-                    'Vive in branchi e spesso si avvicina alle coste.'
+                    'Ha una caratteristica striscia dorata lungo i fianchi argentei.',
+                    'Pesce erbivoro che si nutre esclusivamente di alghe marine.',
+                    'La sua carne può avere un sapore amaro se mangia alghe tossiche.',
+                    'Comune nei fondali rocciosi del Mediterraneo, spesso al Giglio.',
+                    'Vive in piccoli branchi e si avvicina alle coste.'
                 ]
             },
             {
@@ -685,6 +687,8 @@
             clueTotalCount: document.getElementById('clueTotalCount'),
             clueGuesser: document.getElementById('clueGuesser'),
             clueResultBox: document.getElementById('clueResultBox'),
+            passInstruction: document.getElementById('passInstruction'),
+            nextRoundInstruction: document.getElementById('nextRoundInstruction'),
             quizImage: document.getElementById('quizImage'),
             quizCounter: document.getElementById('quizCounter'),
             quizScoreBadge: document.getElementById('quizScoreBadge'),
@@ -768,6 +772,7 @@
 
             const guesser = gameState.currentPlayer === 1 ? 2 : 1;
             elements.clueRoleBox.innerHTML = `<strong>${getPlayerName(gameState.currentPlayer)}</strong> leggerà gli indizi.<br><strong>${getPlayerName(guesser)}</strong> deve indovinare.`;
+            elements.passInstruction.textContent = `${getPlayerName(gameState.currentPlayer)}, guarda l'immagine del pesce. Poi passa il telefono a ${getPlayerName(guesser)} per indovinare!`;
             elements.clueSetupCard.innerHTML = `
                 <img src="${gameState.currentFish.image}" alt="Immagine del pesce">
                 <div class="fish-card-content">
@@ -788,19 +793,21 @@
             showNextClue();
             const guesser = gameState.currentPlayer === 1 ? 2 : 1;
             elements.clueGuesser.textContent = `${getPlayerName(guesser)} ${getPlayerEmoji(guesser)}`;
-            elements.currentClueBox.textContent = 'Leggi il primo indizio e prova a indovinare.';
+            elements.currentClueBox.textContent = `${getPlayerName(gameState.currentPlayer)}, leggi il primo indizio. Poi passa il telefono a ${getPlayerName(guesser)} per indovinare!`;
         }
 
         function showNextClue() {
             if (gameState.clueIndex >= gameState.currentFish.facts.length) {
-                elements.currentClueBox.textContent = 'Hai usato tutti gli indizi disponibili, prova a indovinare ora!';
+                const guesser = gameState.currentPlayer === 1 ? 2 : 1;
+                elements.currentClueBox.textContent = `Hai usato tutti gli indizi disponibili. ${getPlayerName(gameState.currentPlayer)}, passa il telefono a ${getPlayerName(guesser)} per indovinare ora!`;
                 return;
             }
 
             const clue = gameState.currentFish.facts[gameState.clueIndex];
             gameState.usedClues.push(clue);
             gameState.clueIndex += 1;
-            elements.currentClueBox.textContent = clue;
+            const guesser = gameState.currentPlayer === 1 ? 2 : 1;
+            elements.currentClueBox.textContent = `${clue} — ${getPlayerName(gameState.currentPlayer)}, passa il telefono a ${getPlayerName(guesser)} per indovinare!`;
             elements.clueUsedCount.textContent = gameState.usedClues.length;
             elements.usedCluesList.innerHTML = gameState.usedClues.map(text => `<div class="clue-item">💡 ${text}</div>`).join('');
 
@@ -833,6 +840,7 @@
             elements.clueGameView.style.display = 'none';
             elements.clueResultView.style.display = 'block';
             const guesser = gameState.currentPlayer === 1 ? 2 : 1;
+            const nextPlayer = gameState.currentPlayer === 1 ? 2 : 1;
             if (success) {
                 elements.clueResultBox.innerHTML = `
                     <div class="result-title">✅ Giusto!</div>
@@ -846,6 +854,7 @@
                     <div class="result-text">Riprova al prossimo turno con un nuovo pesce.</div>
                 `;
             }
+            elements.nextRoundInstruction.textContent = `Passa il telefono a ${getPlayerName(nextPlayer)} per il prossimo turno!`;
             updateScores();
             document.getElementById('nextClueBtn').disabled = false;
             document.getElementById('nextClueBtn').textContent = 'Prossimo indizio';
@@ -853,6 +862,7 @@
 
         function nextClueRound() {
             gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+            elements.nextRoundInstruction.textContent = '';
             startGameMode('clue');
         }
 
