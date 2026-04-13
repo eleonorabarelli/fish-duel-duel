@@ -749,7 +749,7 @@
                 <p style="text-align: center; color: #666; margin-bottom: 20px; font-weight: 600;">
                     Qual è questo pesce?
                 </p>
-                <div class="fish-image" id="photoImage" style="background-size: cover; background-position: center;"></div>
+                <img class="fish-image" id="photoImage" alt="Immagine del pesce">
 
                 <div class="choice-grid" id="photoChoices"></div>
 
@@ -1395,6 +1395,7 @@
             
             const card = document.getElementById('clueSetupCard');
             card.innerHTML = `
+                <img class="fish-image" src="${gameState.selectedFish.image}" alt="Immagine del pesce" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7ilrDwn5iA8L3RleHQ+PC9zdmc+';">
                 <div class="fish-name">${gameState.selectedFish.commonName.it}</div>
                 <div class="fish-common">${gameState.selectedFish.commonName.en}</div>
                 <div class="fish-scientific">${gameState.selectedFish.scientificName}</div>
@@ -1543,8 +1544,10 @@
             document.getElementById('photoPlayerName').textContent = 
                 getPlayerName(gameState.currentPlayer) + ' ' + getPlayerEmoji(gameState.currentPlayer);
             
-            document.getElementById('photoImage').style.backgroundImage = 
-                `url('${gameState.selectedFish.image}')`;
+            document.getElementById('photoImage').src = gameState.selectedFish.image;
+            document.getElementById('photoImage').onerror = function() {
+                this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7ilrDwn5iA8L3RleHQ+PC9zdmc+';
+            };
             
             const choices = document.getElementById('photoChoices');
             choices.innerHTML = '';
