@@ -1312,9 +1312,13 @@
 
         function normalizeImageUrl(url) {
             try {
-                const match = url.match(/\/([^\/]+\.(?:jpg|jpeg|png|gif|svg))(?:$|[\?#])/i);
-                if (match) {
-                    return `https://commons.wikimedia.org/wiki/Special:FilePath/${match[1]}?width=500`;
+                const thumbMatch = url.match(/\/thumb\/[^\/]+\/([^\/]+)\//i);
+                if (thumbMatch) {
+                    return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(thumbMatch[1])}?width=500`;
+                }
+                const fileMatch = url.match(/\/([^\/]+\.(?:jpg|jpeg|png|gif|svg))(?:$|[\?#])/i);
+                if (fileMatch) {
+                    return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileMatch[1])}?width=500`;
                 }
             } catch (e) {
                 console.log('Errore normalizzazione immagine', e);
