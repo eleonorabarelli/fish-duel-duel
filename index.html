@@ -657,9 +657,6 @@
                 <button class="btn-main btn-clue" onclick="startGameMode('clue')">
                     🗣️ Modalità Indizi<br><span style="font-size: 0.8em;">Un indizio alla volta</span>
                 </button>
-                <button class="btn-main btn-photo" onclick="startGameMode('photo')">
-                    📷 Modalità Foto<br><span style="font-size: 0.8em;">Riconosci dall'immagine</span>
-                </button>
                 <button class="btn-main btn-quiz" onclick="startGameMode('quiz')">
                     📚 Quiz Veloce<br><span style="font-size: 0.8em;">Studia prima dell'immersione</span>
                 </button>
@@ -725,43 +722,6 @@
                 <div class="result-box" id="clueResultBox"></div>
                 <div class="btn-group">
                     <button class="btn btn-primary" onclick="nextRound('clue')">Prossimo Turno →</button>
-                    <button class="btn btn-secondary" onclick="goToMenu()">Menu Principale</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Photo Mode Screen -->
-        <div class="screen" id="photoScreen">
-            <div class="score-board">
-                <div class="player-score">
-                    <div class="player-name">Giulia 🚴</div>
-                    <div class="score" id="photoScoreP1">0</div>
-                </div>
-                <div class="player-score player2">
-                    <div class="player-name">Cristiano 🤿</div>
-                    <div class="score" id="photoScoreP2">0</div>
-                </div>
-            </div>
-
-            <h2 style="color: var(--dark-blue); margin-bottom: 15px; text-align: center;">Turno di <span id="photoPlayerName"></span></h2>
-
-            <div id="photoGameView" style="display: none;">
-                <p style="text-align: center; color: #666; margin-bottom: 20px; font-weight: 600;">
-                    Qual è questo pesce?
-                </p>
-                <img class="fish-image" id="photoImage" alt="Immagine del pesce">
-
-                <div class="choice-grid" id="photoChoices"></div>
-
-                <div class="btn-group">
-                    <button class="btn btn-secondary" style="width: 100%;" onclick="giveUpGuessing('photo')">Non so...</button>
-                </div>
-            </div>
-
-            <div id="photoResultView" style="display: none;">
-                <div class="result-box" id="photoResultBox"></div>
-                <div class="btn-group">
-                    <button class="btn btn-primary" onclick="nextRound('photo')">Prossimo Turno →</button>
                     <button class="btn btn-secondary" onclick="goToMenu()">Menu Principale</button>
                 </div>
             </div>
@@ -1247,7 +1207,6 @@
             selectedFish: null,
             currentClueIndex: 0,
             usedClues: [],
-            photoChoices: [],
             guessed: false,
             quizIndex: 0
         };
@@ -1335,8 +1294,6 @@
             document.getElementById('mainScoreP2').textContent = gameState.scores.player2;
             document.getElementById('clueScoreP1').textContent = gameState.scores.player1;
             document.getElementById('clueScoreP2').textContent = gameState.scores.player2;
-            document.getElementById('photoScoreP1').textContent = gameState.scores.player1;
-            document.getElementById('photoScoreP2').textContent = gameState.scores.player2;
             
             // Save to localStorage
             saveScores();
@@ -1375,8 +1332,6 @@
             
             if (mode === 'clue') {
                 startClueMode();
-            } else if (mode === 'photo') {
-                startPhotoMode();
             } else if (mode === 'quiz') {
                 startQuizMode();
             }
@@ -1527,103 +1482,7 @@
             
             if (mode === 'clue') {
                 startClueMode();
-            } else if (mode === 'photo') {
-                startPhotoMode();
             }
-        }
-
-        // ============================================
-        // PHOTO MODE
-        // ============================================
-        function startPhotoMode() {
-            gameState.selectedFish = getRandomFish();
-            gameState.guessed = false;
-            
-            // Get 4 random choices
-            const choices = [gameState.selectedFish];
-            while (choices.length < 4) {
-                const random = getRandomFish();
-                if (!choices.find(f => f.id === random.id)) {
-                    choices.push(random);
-                }
-            }
-            gameState.photoChoices = choices.sort(() => Math.random() - 0.5);
-            
-            showScreen('photoScreen');
-            showPhotoGame();
-        }
-
-        function showPhotoGame() {
-            document.getElementById('photoGameView').style.display = 'block';
-            document.getElementById('photoResultView').style.display = 'none';
-            
-            document.getElementById('photoPlayerName').textContent = 
-                getPlayerName(gameState.currentPlayer) + ' ' + getPlayerEmoji(gameState.currentPlayer);
-            
-            const photoImage = document.getElementById('photoImage');
-            photoImage.src = normalizeImageUrl(gameState.selectedFish.image);
-            photoImage.onerror = function() {
-                this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7ilrDwn5iA8L3RleHQ+PC9zdmc+';
-            };
-            
-            const choices = document.getElementById('photoChoices');
-            choices.innerHTML = '';
-            gameState.photoChoices.forEach((fish, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'choice-btn';
-                btn.textContent = fish.commonName.it;
-                btn.onclick = () => selectPhotoChoice(idx);
-                choices.appendChild(btn);
-            });
-        }
-
-        function selectPhotoChoice(idx) {
-            if (gameState.guessed) return;
-            
-            gameState.guessed = true;
-            
-            const correct = gameState.photoChoices[idx].id === gameState.selectedFish.id;
-            const buttons = document.querySelectorAll('.choice-btn');
-            
-            buttons.forEach((btn, i) => {
-                if (i === idx) {
-                    btn.classList.add(correct ? 'correct' : 'wrong');
-                } else if (gameState.photoChoices[i].id === gameState.selectedFish.id) {
-                    btn.classList.add('correct');
-                }
-            });
-            
-            if (correct) {
-                gameState.scores[`player${gameState.currentPlayer}`] += 15;
-            }
-            
-            setTimeout(() => {
-                showPhotoResult(correct);
-            }, 1500);
-        }
-
-        function showPhotoResult(correct) {
-            document.getElementById('photoGameView').style.display = 'none';
-            document.getElementById('photoResultView').style.display = 'block';
-            
-            const resultBox = document.getElementById('photoResultBox');
-            
-            if (correct) {
-                resultBox.innerHTML = `
-                    <div class="result-title">✅ Corretto!</div>
-                    <div class="fish-name">${gameState.selectedFish.commonName.it}</div>
-                    <div class="points-earned">+ 15 Punti! 🎉</div>
-                `;
-            } else {
-                resultBox.innerHTML = `
-                    <div class="result-title">❌ Sbagliato!</div>
-                    <div class="fish-name">${gameState.selectedFish.commonName.it}</div>
-                    <div class="fish-common">${gameState.selectedFish.commonName.en}</div>
-                    <div class="points-earned" style="color: #999;">0 Punti</div>
-                `;
-            }
-            
-            updateScores();
         }
 
         // ============================================
