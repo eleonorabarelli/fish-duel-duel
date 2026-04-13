@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fish Duel 🐟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #0077be;
+            --light-blue: #00a8e8;
+            --dark-blue: #004e89;
+            --teal: #00d4d4;
+            --coral: #ff6b6b;
+            --cream: #fffdf0;
+            --sand: #f4e4c1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark-blue) 0%, var(--primary-blue) 50%, var(--teal) 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Bubbles animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes bubbleRise {
+            0% {
+                bottom: -10px;
+                opacity: 1;
+            }
+            100% {
+                bottom: 100vh;
+                opacity: 0;
+            }
+        }
+
+        @keyframes fishSwim {
+            0% { transform: translateX(0px); }
+            50% { transform: translateX(20px); }
+            100% { transform: translateX(0px); }
+        }
+
+        .bubble {
+            position: fixed;
+            bottom: 0;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(0,212,212,0.3));
+            border-radius: 50%;
+            animation: bubbleRise linear infinite;
+            pointer-events: none;
+        }
+
+        .fish-icon {
+            display: inline-block;
+            animation: fishSwim 3s ease-in-out infinite;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 40px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Main Menu */
+        .menu-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn-main {
+            padding: 20px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: center;
+        }
+
+        .btn-main:active {
+            transform: scale(0.98);
+        }
+
+        .btn-clue {
+            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+            box-shadow: 0 5px 15px rgba(0, 119, 190, 0.3);
+        }
+
+        .btn-photo {
+            background: linear-gradient(135deg, var(--coral), #ff8787);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-quiz {
+            background: linear-gradient(135deg, var(--teal), #00e6e6);
+            box-shadow: 0 5px 15px rgba(0, 212, 212, 0.3);
+            color: #333;
+        }
+
+        .btn-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        /* Score display */
+        .score-board {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .player-score {
+            text-align: center;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #f0f0f0, #e8e8e8);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .player-score.player2 {
+            border-left-color: var(--coral);
+        }
+
+        .player-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .score {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-top: 5px;
+        }
+
+        .player2 .score {
+            color: var(--coral);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            font-size: 1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--dark-blue);
+        }
+
+        .btn-success {
+            background: #51cf66;
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--coral);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #868e96;
+            color: white;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Fish card display */
+        .fish-card {
+            background: linear-gradient(135deg, var(--cream), #fff9e6);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid var(--teal);
+            text-align: center;
+        }
+
+        .fish-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, rgba(0, 77, 137, 0.1), rgba(0, 212, 212, 0.1));
+        }
+
+        .fish-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--dark-blue);
+            margin-bottom: 5px;
+        }
+
+        .fish-common {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .fish-scientific {
+            font-style: italic;
+            color: #999;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+        }
+
+        .fish-info {
+            text-align: left;
+            background: rgba(0, 212, 212, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .fish-info-item {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .fish-facts {
+            text-align: left;
+            background: rgba(255, 107, 107, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        .fact {
+            margin: 8px 0;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .fact:before {
+            content: "🐟";
+            position: absolute;
+            left: 0;
+        }
+
+        /* Clue mode */
+        .clue-box {
+            background: linear-gradient(135deg, rgba(0, 119, 190, 0.1), rgba(0, 212, 212, 0.1));
+            border-left: 4px solid var(--primary-blue);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            color: var(--dark-blue);
+            font-weight: 600;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .used-clues {
+            margin-bottom: 15px;
+        }
+
+        .clue-item {
+            background: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-size: 0.95em;
+            color: #666;
+        }
+
+        .clue-counter {
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+
+        /* Multiple choice */
+        .choice-grid {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .choice-btn {
+            padding: 15px;
+            text-align: center;
+            background: linear-gradient(135deg, #f0f0f0, #e8e8e8);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .choice-btn:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-2px);
+        }
+
+        .choice-btn.selected {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .choice-btn.correct {
+            background: #51cf66;
+            color: white;
+            border-color: #51cf66;
+            animation: pulse 0.5s;
+        }
+
+        .choice-btn.wrong {
+            background: var(--coral);
+            color: white;
+            border-color: var(--coral);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Round result */
+        .result-box {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid var(--teal);
+        }
+
+        .result-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--dark-blue);
+            margin-bottom: 10px;
+        }
+
+        .points-earned {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--coral);
+            margin-bottom: 15px;
+        }
+
+        .result-text {
+            color: #666;
+            font-size: 1em;
+            line-height: 1.6;
+        }
+
+        /* Input fields */
+        input[type="text"],
+        input[type="number"] {
+            padding: 12px;
+            border: 2px solid var(--teal);
+            border-radius: 8px;
+            font-size: 1em;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 5px rgba(0, 119, 190, 0.2);
+        }
+
+        /* Mode selector */
+        .mode-selector {
+            display: grid;
+            gap: 15px;
+            grid-template-columns: 1fr 1fr;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            padding: 15px;
+            background: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--primary-blue);
+        }
+
+        .mode-btn.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        /* Header back button */
+        .back-btn {
+            float: left;
+            padding: 8px 15px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-content {
+            clear: both;
+        }
+
+        /* Difficulty badge */
+        .difficulty {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .difficulty.easy {
+            background: #90ee90;
+            color: #2d5016;
+        }
+
+        .difficulty.medium {
+            background: #ffd700;
+            color: #664d00;
+        }
+
+        .difficulty.hard {
+            background: var(--coral);
+            color: white;
+        }
+
+        /* Loading animation */
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 119, 190, 0.2);
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.95em;
+            }
+
+            .score-board {
+                gap: 10px;
+            }
+
+            .player-score {
+                padding: 10px 15px;
+            }
+
+            .fish-image {
+                height: 180px;
+            }
+
+            .fish-name {
+                font-size: 1.3em;
+            }
+        }
+
+        /* Flashcard style for quiz */
+        .flashcard {
+            perspective: 1000px;
+            margin-bottom: 20px;
+            min-height: 300px;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .flashcard-front {
+            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+            color: white;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .flashcard-back {
+            background: linear-gradient(135deg, var(--teal), #00e6e6);
+            color: #333;
+            transform: rotateY(180deg);
+            flex-direction: column;
+            justify-content: flex-start;
+            padding-top: 40px;
+        }
+
+        .flashcard-content {
+            font-size: 0.95em;
+            color: #333;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Bubbles animation -->
+    <div id="bubbleContainer"></div>
+
+    <header>
+        <button class="back-btn" id="backBtn" style="display:none;">← Indietro</button>
+        <div class="header-content">
+            <h1 id="headerTitle">🐟 Fish Duel 🐟</h1>
+            <p id="headerSubtitle" style="display:none; font-size: 0.9em; margin-top: -5px;"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Main Menu Screen -->
+        <div class="screen active" id="mainMenuScreen">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <p style="font-size: 1.1em; color: #666; margin-bottom: 10px;">Benvenuti! 🌊</p>
+                <p style="color: #999; font-size: 0.95em;">Scopri i pesci del Mediterraneo</p>
+            </div>
+
+            <div class="score-board" style="margin-bottom: 30px;">
+                <div class="player-score">
+                    <div class="player-name">Giulia 🚴</div>
+                    <div class="score" id="mainScoreP1">0</div>
+                </div>
+                <div class="player-score player2">
+                    <div class="player-name">Cristiano 🤿</div>
+                    <div class="score" id="mainScoreP2">0</div>
+                </div>
+            </div>
+
+            <div class="menu-grid">
+                <button class="btn-main btn-clue" onclick="startGameMode('clue')">
+                    🗣️ Modalità Indizi<br><span style="font-size: 0.8em;">Un indizio alla volta</span>
+                </button>
+                <button class="btn-main btn-photo" onclick="startGameMode('photo')">
+                    📷 Modalità Foto<br><span style="font-size: 0.8em;">Riconosci dall'immagine</span>
+                </button>
+                <button class="btn-main btn-quiz" onclick="startGameMode('quiz')">
+                    📚 Quiz Veloce<br><span style="font-size: 0.8em;">Studia prima dell'immersione</span>
+                </button>
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; text-align: center; color: #999; font-size: 0.9em;">
+                <p>Pesci del Giglio 🏝️ Toscana</p>
+                <button class="btn btn-secondary" style="margin-top: 10px;" onclick="resetScores()">Azzera Punteggi</button>
+            </div>
+        </div>
+
+        <!-- Clue Mode Screen -->
+        <div class="screen" id="clueScreen">
+            <div class="score-board">
+                <div class="player-score">
+                    <div class="player-name">Giulia 🚴</div>
+                    <div class="score" id="clueScoreP1">0</div>
+                </div>
+                <div class="player-score player2">
+                    <div class="player-name">Cristiano 🤿</div>
+                    <div class="score" id="clueScoreP2">0</div>
+                </div>
+            </div>
+
+            <div id="clueSetupView" style="display: none;">
+                <h2 style="color: var(--dark-blue); margin-bottom: 20px; text-align: center;">Turno di <span id="clueCurrentPlayer"></span></h2>
+                <p style="text-align: center; margin-bottom: 20px; color: #666;">
+                    <span id="cluePlayerRole"></span>
+                </p>
+                <div class="fish-card" id="clueSetupCard"></div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="readyForCluesBtn">Pronto! ✓</button>
+                </div>
+                <p style="text-align: center; color: #999; font-size: 0.9em; margin-top: 20px;">Il pesce è ora nascosto dalla vista dell'altro giocatore!</p>
+            </div>
+
+            <div id="clueGameView" style="display: none;">
+                <h2 style="color: var(--dark-blue); margin-bottom: 15px; text-align: center;">
+                    <span id="clueGuesser"></span> deve indovinare!
+                </h2>
+                
+                <div class="clue-box" id="currentClueBox">
+                    Premi i pulsanti sotto per leggere gli indizi
+                </div>
+
+                <div class="used-clues" id="usedCluesList"></div>
+
+                <div class="clue-counter">
+                    Indizi usati: <span id="clueUsedCount">0</span> / <span id="clueTotalCount">5</span>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="nextClueBtn" onclick="showNextClue()">Prossimo Indizio →</button>
+                    <button class="btn btn-success" id="guessBtn" onclick="makeGuess('clue')">Indovino! 🎯</button>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" style="width: 100%;" onclick="giveUpGuessing('clue')">Mi arrendo...</button>
+                </div>
+            </div>
+
+            <div id="clueResultView" style="display: none;">
+                <div class="result-box" id="clueResultBox"></div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="nextRound('clue')">Prossimo Turno →</button>
+                    <button class="btn btn-secondary" onclick="goToMenu()">Menu Principale</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photo Mode Screen -->
+        <div class="screen" id="photoScreen">
+            <div class="score-board">
+                <div class="player-score">
+                    <div class="player-name">Giulia 🚴</div>
+                    <div class="score" id="photoScoreP1">0</div>
+                </div>
+                <div class="player-score player2">
+                    <div class="player-name">Cristiano 🤿</div>
+                    <div class="score" id="photoScoreP2">0</div>
+                </div>
+            </div>
+
+            <h2 style="color: var(--dark-blue); margin-bottom: 15px; text-align: center;">Turno di <span id="photoPlayerName"></span></h2>
+
+            <div id="photoGameView" style="display: none;">
+                <p style="text-align: center; color: #666; margin-bottom: 20px; font-weight: 600;">
+                    Qual è questo pesce?
+                </p>
+                <div class="fish-image" id="photoImage" style="background-size: cover; background-position: center;"></div>
+
+                <div class="choice-grid" id="photoChoices"></div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" style="width: 100%;" onclick="giveUpGuessing('photo')">Non so...</button>
+                </div>
+            </div>
+
+            <div id="photoResultView" style="display: none;">
+                <div class="result-box" id="photoResultBox"></div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="nextRound('photo')">Prossimo Turno →</button>
+                    <button class="btn btn-secondary" onclick="goToMenu()">Menu Principale</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Mode Screen -->
+        <div class="screen" id="quizScreen">
+            <p style="text-align: center; color: #666; margin-bottom: 20px; font-weight: 600;">
+                Modalità Studio - Clicca per girare le carte 📚
+            </p>
+
+            <div id="quizView" style="display: none;">
+                <div class="flashcard" id="flashcard">
+                    <div class="flashcard-inner" id="flashcardInner">
+                        <div class="flashcard-front">
+                            <span id="flashcardFront">Pesce</span>
+                        </div>
+                        <div class="flashcard-back">
+                            <div class="flashcard-content" id="flashcardBack"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-bottom: 20px; color: #666; font-weight: 600;">
+                    Pesce <span id="quizProgress">1</span> di <span id="quizTotal">25</span>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="previousQuizCard()">← Precedente</button>
+                    <button class="btn btn-primary" onclick="nextQuizCard()">Successivo →</button>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" style="width: 100%;" onclick="goToMenu()">Menu Principale</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // GAME STATE & STORAGE
+        // ============================================
+        const fishes = [
+            {
+                id: 1,
+                commonName: { it: "Spigola", en: "European Bass" },
+                scientificName: "Dicentrarchus labrax",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Dicentrarchus_labrax.jpg/440px-Dicentrarchus_labrax.jpg",
+                habitat: "Rocce, posidonia",
+                depth: "0-100m",
+                size: "30-60cm",
+                difficulty: "easy",
+                facts: [
+                    "Predatore agile con corpo allungato argentato",
+                    "Ha una linea scura che corre lungo il dorso",
+                    "Ama cacciare piccoli pesci in branco",
+                    "Buono da mangiare - perfetto per la cena! 🍽️",
+                    "Può raggiungere velocità impressionanti"
+                ]
+            },
+            {
+                id: 2,
+                commonName: { it: "Cavastello", en: "Two-banded Bream" },
+                scientificName: "Diplodus cervinus",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Diplodus_cervinus.jpg/440px-Diplodus_cervinus.jpg",
+                habitat: "Fondo sabbioso, rocce",
+                depth: "5-80m",
+                size: "20-40cm",
+                difficulty: "medium",
+                facts: [
+                    "Ha due fasce nere verticali caratteristiche",
+                    "Corpo tozzo e compresso lateralmente",
+                    "Si nutre principalmente di molluschi e crostacei",
+                    "Vive in piccoli branchi",
+                    "Colore grigio-argentato con sfumature blu"
+                ]
+            },
+            {
+                id: 3,
+                commonName: { it: "Muggine", en: "Grey Mullet" },
+                scientificName: "Chelon labrosus",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Mugil_cephalus_and_Chelon_labrosus.jpg/500px-Mugil_cephalus_and_Chelon_labrosus.jpg",
+                habitat: "Acque costiere poco profonde, foci",
+                depth: "0-20m",
+                size: "30-50cm",
+                difficulty: "easy",
+                facts: [
+                    "Pesce robusto grigio-argento",
+                    "Si muove in branchi numerosi",
+                    "Ha una bocca inferiore speciale per nutrirsi di alghe",
+                    "Salta fuori dall'acqua quando spaventato!",
+                    "Tocca la superficie dell'acqua per respirare aria supplementare"
+                ]
+            },
+            {
+                id: 4,
+                commonName: { it: "Dentice", en: "Dentex" },
+                scientificName: "Dentex dentex",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Dentex_dentex.jpg/495px-Dentex_dentex.jpg",
+                habitat: "Rocce, gorgonie",
+                depth: "5-200m",
+                size: "40-80cm",
+                difficulty: "hard",
+                facts: [
+                    "Pesce importante e predatore aggressivo",
+                    "Ha denti forti e ben visibili",
+                    "Corpo rosato o rosa-argentato",
+                    "Caccia solitario o in piccoli gruppi",
+                    "Aumenta di aggressività con l'età"
+                ]
+            },
+            {
+                id: 5,
+                commonName: { it: "Sarago Nero", en: "Common Seabream" },
+                scientificName: "Diplodus sargus",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Diplodus_sargus.png/440px-Diplodus_sargus.png",
+                habitat: "Rocce, alghe",
+                depth: "0-50m",
+                size: "20-35cm",
+                difficulty: "medium",
+                facts: [
+                    "Corpo argento con 7-8 fasce verticali nere",
+                    "Bocca grande con labbra prominenti",
+                    "Si nutre di crostacei e molluschi",
+                    "Vive sia in branchi che solitario",
+                    "Colore che varia dal grigio al rosato"
+                ]
+            },
+            {
+                id: 6,
+                commonName: { it: "Sarago Maggiore", en: "Gilt-head Bream" },
+                scientificName: "Diplodus vulgaris",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Sargo_vulgaris.jpg/440px-Sargo_vulgaris.jpg",
+                habitat: "Rocce, posidonia, fondo sabbia",
+                depth: "5-65m",
+                size: "25-45cm",
+                difficulty: "medium",
+                facts: [
+                    "Corpo argento con sfumature dorate",
+                    "Due fasce nere verticali caratteristiche",
+                    "Denti forti per rompere gusci di molluschi",
+                    "Ermafrodita: può cambiare sesso",
+                    "Si muove con altri saragi"
+                ]
+            },
+            {
+                id: 7,
+                commonName: { it: "Sarago Testafossa", en: "Sharpsnout Seabream" },
+                scientificName: "Diplodus puntazzo",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Diplodus_puntazzo.jpg/440px-Diplodus_puntazzo.jpg",
+                habitat: "Posidonia, rocce",
+                depth: "2-40m",
+                size: "18-30cm",
+                difficulty: "medium",
+                facts: [
+                    "Corpo compresso con testa appuntita",
+                    "Argento con fasce verticali pallide",
+                    "Bocca piccola e appuntita - da cui il nome",
+                    "Si nutre di alghe e piccoli invertebrati",
+                    "Meno aggressivo dei cugini saragi"
+                ]
+            },
+            {
+                id: 8,
+                commonName: { it: "Donzella Pavone", en: "Rainbow Wrasse" },
+                scientificName: "Thalassoma pavo",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Thalassoma_pavo.jpg/440px-Thalassoma_pavo.jpg",
+                habitat: "Rocce, praterie di posidonia",
+                depth: "2-60m",
+                size: "12-25cm",
+                difficulty: "easy",
+                facts: [
+                    "Colori incredibilmente vivaci: blu, giallo, rosso, bianco",
+                    "Cambia colore con l'umore e il sesso",
+                    "Bellissima e ricercata dai subacquei",
+                    "Si muove velocemente tra le rocce",
+                    "Pulisce i parassiti da pesci più grandi"
+                ]
+            },
+            {
+                id: 9,
+                commonName: { it: "Donzella", en: "Mediterranean Wrasse" },
+                scientificName: "Coris julis",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Coris_julis.jpg/440px-Coris_julis.jpg",
+                habitat: "Rocce, alghe, posidonia",
+                depth: "1-50m",
+                size: "15-25cm",
+                difficulty: "easy",
+                facts: [
+                    "Colore rosso-arancio con strisce blu",
+                    "Corpo allungato e affusolato",
+                    "Si nutre di piccoli crostacei",
+                    "Saltella tra le rocce come un pesce-palla",
+                    "Maschi e femmine hanno colori diversi"
+                ]
+            },
+            {
+                id: 10,
+                commonName: { it: "Triglia", en: "Red Mullet" },
+                scientificName: "Mullus barbatus",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Mullus_barbatus.jpg/440px-Mullus_barbatus.jpg",
+                habitat: "Fondo sabbioso e fangoso",
+                depth: "10-100m",
+                size: "15-25cm",
+                difficulty: "medium",
+                facts: [
+                    "Colore rosso-rosa caratteristico",
+                    "Ha due lunghi barbigli sotto il mento",
+                    "Usa i barbigli per frugare nel fango",
+                    "Si muove sul fondo nuotando lateralmente",
+                    "Delizia culinaria - molto ricercata"
+                ]
+            },
+            {
+                id: 11,
+                commonName: { it: "Triglia di Scoglio", en: "Red Banded Seabream" },
+                scientificName: "Mullus surmuletus",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Mullus_surmuletus.jpg/440px-Mullus_surmuletus.jpg",
+                habitat: "Rocce, alghe",
+                depth: "5-100m",
+                size: "20-30cm",
+                difficulty: "medium",
+                facts: [
+                    "Colore rosso brillante con 3-4 fasce verticali giallastre",
+                    "Barbigli sotto il mento ma più corti della Triglia",
+                    "Più piccola della cugina di fango",
+                    "Abita rocce e praterie",
+                    "Altrettanto saporita della Triglia"
+                ]
+            },
+            {
+                id: 12,
+                commonName: { it: "Sgombro", en: "Atlantic Mackerel" },
+                scientificName: "Scomber scombrus",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Scomber_scombrus.jpg/440px-Scomber_scombrus.jpg",
+                habitat: "Acque aperte",
+                depth: "0-300m",
+                size: "30-50cm",
+                difficulty: "medium",
+                facts: [
+                    "Corpo verde-blu scuro con strisce nere",
+                    "Ventre argentato brillante",
+                    "Nuotatore velocissimo - sempre in movimento!",
+                    "Vive in branchi numerosi",
+                    "Salta frequentemente fuori dall'acqua per respirare"
+                ]
+            },
+            {
+                id: 13,
+                commonName: { it: "Cernia", en: "Brown Meagre" },
+                scientificName: "Epinephelus marginatus",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Epinephelus_marginatus.jpg/440px-Epinephelus_marginatus.jpg",
+                habitat: "Rocce, grotte, gorgonie",
+                depth: "20-200m",
+                size: "40-100cm",
+                difficulty: "hard",
+                facts: [
+                    "Grande predatore camuffato - colore bruno-scuro",
+                    "Corpo massicciccio con bocca grande",
+                    "Abita grotte e anfratti rocciosi",
+                    "Solitaria e territoriale",
+                    "Raramente si vede: è sfuggente e scura!"
+                ]
+            },
+            {
+                id: 14,
+                commonName: { it: "Corvina", en: "Dusky Grouper" },
+                scientificName: "Sciaena umbra",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Sciaena_umbra1.jpg/440px-Sciaena_umbra1.jpg",
+                habitat: "Fond rocciosi, caverne",
+                depth: "10-200m",
+                size: "30-60cm",
+                difficulty: "hard",
+                facts: [
+                    "Colore grigio-brunastro uniformemente scuro",
+                    "Corpo torchuto e potente",
+                    "Produce suoni (da cui 'corvina' = corvo)",
+                    "Solitaria e diffidente",
+                    "Difficile da avvistare sott'acqua"
+                ]
+            },
+            {
+                id: 15,
+                commonName: { it: "Ombrina", en: "Meagre" },
+                scientificName: "Umbrina cirrosa",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Umbrina_cirrosa.jpg/440px-Umbrina_cirrosa.jpg",
+                habitat: "Fondo sabbioso, rocce",
+                depth: "5-150m",
+                size: "40-70cm",
+                difficulty: "hard",
+                facts: [
+                    "Corpo grigio-argento con sfumature blu",
+                    "Ha iridescenza dorata ",
+                    "Emette suoni caratteristici - 'canta'!",
+                    "Predatore notturno",
+                    "Molto sfuggente durante il giorno"
+                ]
+            },
+            {
+                id: 16,
+                commonName: { it: "Castagnola", en: "Damselfish" },
+                scientificName: "Chromis chromis",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Chromis_chromis_RC.jpg/440px-Chromis_chromis_RC.jpg",
+                habitat: "Rocce, gorgonie",
+                depth: "2-80m",
+                size: "15-20cm",
+                difficulty: "easy",
+                facts: [
+                    "Piccolo pesce azzurro brillante",
+                    "Vive in sciami numerosi",
+                    "Territorialer - protegge aggressivamente il territorio",
+                    "Si tuffa nelle rocce quando è pericolo",
+                    "Uno dei pesci più comuni del Mediterraneo"
+                ]
+            },
+            {
+                id: 17,
+                commonName: { it: "Pesce Pappagallo", en: "Parrotfish" },
+                scientificName: "Sparisoma cretense",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Sparisoma_cretense.jpg/440px-Sparisoma_cretense.jpg",
+                habitat: "Rocce, alghe coralline",
+                depth: "5-60m",
+                size: "15-30cm",
+                difficulty: "medium",
+                facts: [
+                    "Colore verde con parti rosa e blu",
+                    "Bocca simile a un becco di pappagallo",
+                    "Si nutre di alghe coralline raschiando le rocce",
+                    "Produce sabbia masticando rocce coralline",
+                    "Colori diversi tra maschi e femmine"
+                ]
+            },
+            {
+                id: 18,
+                commonName: { it: "Anguilla", en: "European Eel" },
+                scientificName: "Anguilla anguilla",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Anguilla_anguilla.jpg/440px-Anguilla_anguilla.jpg",
+                habitat: "Rocce, caverne, fango",
+                depth: "0-300m",
+                size: "50-100cm",
+                difficulty: "hard",
+                facts: [
+                    "Corpo anguilliforme scuro o olivastro",
+                    "Si muove sinuosamente come un serpente",
+                    "Si nasconde durante il giorno",
+                    "Attiva di notte - esce per cacciare",
+                    "Compie migrazioni incredibili verso l'Atlantico!"
+                ]
+            },
+            {
+                id: 19,
+                commonName: { it: "Ricciola", en: "Greater Amberjack" },
+                scientificName: "Seriola dumerili",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Seriola_dumerili.jpg/440px-Seriola_dumerili.jpg",
+                habitat: "Rocce, acque aperte",
+                depth: "5-100m",
+                size: "60-100cm",
+                difficulty: "hard",
+                facts: [
+                    "Grande pesce azzurrastro argento",
+                    "Corpo potente e idrodinamico",
+                    "Predatore aggressivo di grande velocità",
+                    "Vive solitaria o in piccoli gruppi",
+                    "Salti spettacolari fuori dall'acqua quando aggancia l'amo!"
+                ]
+            },
+            {
+                id: 20,
+                commonName: { it: "Cernia Marmorizzata", en: "Monster Grouper" },
+                scientificName: "Epinephelus guaza",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Epinephelus_guaza.jpg/440px-Epinephelus_guaza.jpg",
+                habitat: "Rocce profonde, caverne",
+                depth: "30-200m",
+                size: "50-120cm",
+                difficulty: "hard",
+                facts: [
+                    "Grande cernia con marmorizzazione complessa",
+                    "Colore bruno con pattern geometrico",
+                    "Predatore supremo del fondale",
+                    "Vive in caverne e anfratti",
+                    "Specie vulnerabile - molto rara!"
+                ]
+            },
+            {
+                id: 21,
+                commonName: { it: "Leccia", en: "Greater Amberjack" },
+                scientificName: "Lichia amia",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Lichia_amia.jpg/440px-Lichia_amia.jpg",
+                habitat: "Rocce, acque aperte",
+                depth: "5-100m",
+                size: "60-150cm",
+                difficulty: "hard",
+                facts: [
+                    "Simile alla Ricciola ma più grande",
+                    "Colore azzurro-verde scuro",
+                    "Predatore velocissimo",
+                    "Solitaria e territoriale",
+                    "Specie prestigiosa per i sub appassionati"
+                ]
+            },
+            {
+                id: 22,
+                commonName: { it: "Pesce Luna", en: "Ocean Sunfish" },
+                scientificName: "Mola mola",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Mola_mola.jpg/440px-Mola_mola.jpg",
+                habitat: "Acque aperte, offshore",
+                depth: "0-200m",
+                size: "180-250cm",
+                difficulty: "hard",
+                facts: [
+                    "Pesce più pesante del mondo! Fino a 2000kg",
+                    "Forma rotonda e piatta eccezionale",
+                    "Colore grigio-argento",
+                    "Mangia meduse principalmente",
+                    "Rarissimo avvistamento - molto speciale!"
+                ]
+            },
+            {
+                id: 23,
+                commonName: { it: "Sgombro Imperatore", en: "Atlantic Horse Mackerel" },
+                scientificName: "Trachurus trachurus",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Trachurus_trachurus.jpg/440px-Trachurus_trachurus.jpg",
+                habitat: "Acque aperte, rocce",
+                depth: "0-300m",
+                size: "20-35cm",
+                difficulty: "medium",
+                facts: [
+                    "Corpo verde-blu con linea laterale spinosa",
+                    "Vive in branchi enormi",
+                    "Veloce e agile",
+                    "Si nutre di plancton e piccoli pesci",
+                    "Colore brillante che cambia con la luce"
+                ]
+            },
+            {
+                id: 24,
+                commonName: { it: "Tordo", en: "Wrasse" },
+                scientificName: "Labrus mixtus",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Labrus_mixtus.jpg/440px-Labrus_mixtus.jpg",
+                habitat: "Rocce, kelp",
+                depth: "5-60m",
+                size: "25-40cm",
+                difficulty: "medium",
+                facts: [
+                    "Maschi: blu scuro con striature arancioni",
+                    "Femmine: colore rosso-arancio",
+                    "Corpo robusto e potente",
+                    "Carnivoro aggressivo",
+                    "Colori straordinari - è bellissimo!"
+                ]
+            },
+            {
+                id: 25,
+                commonName: { it: "Merluzzo", en: "Atlantic Cod" },
+                scientificName: "Gadus morhua",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Gadus_morhua_2.jpg/440px-Gadus_morhua_2.jpg",
+                habitat: "Fondo sabbioso-roccioso",
+                depth: "10-150m",
+                size: "40-80cm",
+                difficulty: "medium",
+                facts: [
+                    "Colore marrone-grigio con macchie",
+                    "Ha un barbiglione sul mento",
+                    "Corpo robusto e tozzo",
+                    "Predatore del fondo",
+                    "Specie della zona fredda - raro al Giglio"
+                ]
+            }
+        ];
+
+        // ============================================
+        // GAME STATE
+        // ============================================
+        let gameState = {
+            currentMode: null,
+            currentRound: 1,
+            scores: {
+                player1: 0,
+                player2: 0
+            },
+            currentPlayer: 1, // 1 = Giulia, 2 = Cristiano
+            selectedFish: null,
+            currentClueIndex: 0,
+            usedClues: [],
+            photoChoices: [],
+            guessed: false,
+            quizIndex: 0
+        };
+
+        // ============================================
+        // SYNC & STORAGE FUNCTIONS
+        // ============================================
+        const STORAGE_KEY = 'fishDuel_scores';
+
+        function loadScores() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    gameState.scores = JSON.parse(saved);
+                } catch (e) {
+                    console.log('Storage not available');
+                }
+            }
+        }
+
+        function saveScores() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState.scores));
+            } catch (e) {
+                console.log('Cannot save to storage');
+            }
+        }
+
+        // Listen for changes from other tabs
+        window.addEventListener('storage', (e) => {
+            if (e.key === STORAGE_KEY) {
+                try {
+                    if (e.newValue) {
+                        gameState.scores = JSON.parse(e.newValue);
+                        updateScores();
+                    }
+                } catch (err) {
+                    console.log('Error syncing scores');
+                }
+            }
+        });
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function getRandomFish() {
+            return fishes[Math.floor(Math.random() * fishes.length)];
+        }
+
+        function getRandomFishes(count) {
+            const arr = [...fishes].sort(() => Math.random() - 0.5);
+            return arr.slice(0, count);
+        }
+
+        function getPlayerName(playerNum) {
+            return playerNum === 1 ? "Giulia" : "Cristiano";
+        }
+
+        function getPlayerEmoji(playerNum) {
+            return playerNum === 1 ? "🚴" : "🤿";
+        }
+
+        function switchPlayer() {
+            gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+        }
+
+        function updateScores() {
+            document.getElementById('mainScoreP1').textContent = gameState.scores.player1;
+            document.getElementById('mainScoreP2').textContent = gameState.scores.player2;
+            document.getElementById('clueScoreP1').textContent = gameState.scores.player1;
+            document.getElementById('clueScoreP2').textContent = gameState.scores.player2;
+            document.getElementById('photoScoreP1').textContent = gameState.scores.player1;
+            document.getElementById('photoScoreP2').textContent = gameState.scores.player2;
+            
+            // Save to localStorage
+            saveScores();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // ============================================
+        // BUBBLES ANIMATION
+        // ============================================
+        function createBubble() {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.style.left = Math.random() * 100 + '%';
+            bubble.style.width = (Math.random() * 30 + 10) + 'px';
+            bubble.style.height = bubble.style.width;
+            bubble.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            document.getElementById('bubbleContainer').appendChild(bubble);
+            
+            setTimeout(() => bubble.remove(), 7000);
+        }
+
+        setInterval(createBubble, 800);
+
+        // ============================================
+        // GAME MODES
+        // ============================================
+
+        function startGameMode(mode) {
+            gameState.currentMode = mode;
+            gameState.currentRound = 1;
+            gameState.currentPlayer = 1;
+            
+            if (mode === 'clue') {
+                startClueMode();
+            } else if (mode === 'photo') {
+                startPhotoMode();
+            } else if (mode === 'quiz') {
+                startQuizMode();
+            }
+        }
+
+        // ============================================
+        // CLUE MODE
+        // ============================================
+        function startClueMode() {
+            gameState.selectedFish = getRandomFish();
+            gameState.currentClueIndex = 0;
+            gameState.usedClues = [];
+            gameState.guessed = false;
+            
+            showScreen('clueScreen');
+            showClueSetup();
+        }
+
+        function showClueSetup() {
+            const view = document.getElementById('clueSetupView');
+            view.style.display = 'block';
+            document.getElementById('clueGameView').style.display = 'none';
+            document.getElementById('clueResultView').style.display = 'none';
+            
+            document.getElementById('clueCurrentPlayer').textContent = 
+                getPlayerName(gameState.currentPlayer) + ' ' + getPlayerEmoji(gameState.currentPlayer);
+            
+            const guesser = gameState.currentPlayer === 1 ? 2 : 1;
+            document.getElementById('cluePlayerRole').innerHTML = 
+                `<strong>${getPlayerName(gameState.currentPlayer)}</strong> leggerà gli indizi<br>
+                <strong>${getPlayerName(guesser)}</strong> deve indovinare il pesce!`;
+            
+            const card = document.getElementById('clueSetupCard');
+            card.innerHTML = `
+                <div class="fish-name">${gameState.selectedFish.commonName.it}</div>
+                <div class="fish-common">${gameState.selectedFish.commonName.en}</div>
+                <div class="fish-scientific">${gameState.selectedFish.scientificName}</div>
+                <div class="difficulty ${gameState.selectedFish.difficulty}">
+                    ${gameState.selectedFish.difficulty === 'easy' ? '🟢 Facile' : 
+                      gameState.selectedFish.difficulty === 'medium' ? '🟡 Medio' : 
+                      '🔴 Difficile'}
+                </div>
+            `;
+        }
+
+        function readyForClues() {
+            const view = document.getElementById('clueSetupView');
+            view.style.display = 'none';
+            document.getElementById('clueGameView').style.display = 'block';
+            
+            const guesser = gameState.currentPlayer === 1 ? 2 : 1;
+            document.getElementById('clueGuesser').textContent = 
+                getPlayerName(guesser) + ' ' + getPlayerEmoji(guesser);
+            
+            showNextClue();
+        }
+
+        function showNextClue() {
+            if (gameState.currentClueIndex >= gameState.selectedFish.facts.length) {
+                // No more clues
+                alert('Niente più indizi! Deve indovinare ora!');
+                return;
+            }
+            
+            const clue = gameState.selectedFish.facts[gameState.currentClueIndex];
+            gameState.usedClues.push(clue);
+            
+            document.getElementById('currentClueBox').textContent = clue;
+            document.getElementById('clueUsedCount').textContent = gameState.usedClues.length;
+            document.getElementById('clueTotalCount').textContent = gameState.selectedFish.facts.length;
+            
+            // Update used clues list
+            let cluesList = '';
+            gameState.usedClues.forEach((c, i) => {
+                cluesList += `<div class="clue-item">💡 ${c}</div>`;
+            });
+            document.getElementById('usedCluesList').innerHTML = cluesList;
+            
+            gameState.currentClueIndex++;
+            
+            // Update button
+            if (gameState.currentClueIndex >= gameState.selectedFish.facts.length) {
+                document.getElementById('nextClueBtn').disabled = true;
+                document.getElementById('nextClueBtn').style.opacity = '0.5';
+                document.getElementById('nextClueBtn').textContent = 'Indizi Finiti';
+            }
+        }
+
+        function makeGuess(mode) {
+            const guess = prompt('Quale pesce è?').toLowerCase().trim();
+            
+            if (!guess) return;
+            
+            const correct = guess === gameState.selectedFish.commonName.it.toLowerCase() ||
+                           guess === gameState.selectedFish.commonName.en.toLowerCase();
+            
+            if (correct) {
+                const points = 20 - (gameState.usedClues.length * 3);
+                const guesser = gameState.currentPlayer === 1 ? 2 : 1;
+                gameState.scores[`player${guesser}`] += Math.max(5, points);
+                showClueResult(true, points);
+            } else {
+                showClueResult(false, 0);
+            }
+        }
+
+        function giveUpGuessing(mode) {
+            const guesser = gameState.currentPlayer === 1 ? 2 : 1;
+            showClueResult(false, 0);
+        }
+
+        function showClueResult(correct, points) {
+            document.getElementById('clueGameView').style.display = 'none';
+            document.getElementById('clueResultView').style.display = 'block';
+            
+            const guesser = gameState.currentPlayer === 1 ? 2 : 1;
+            const resultBox = document.getElementById('clueResultBox');
+            
+            if (correct) {
+                resultBox.innerHTML = `
+                    <div class="result-title">✅ Risposta Corretta!</div>
+                    <div class="fish-name">${gameState.selectedFish.commonName.it}</div>
+                    <div class="points-earned">+ ${points} Punti! 🎉</div>
+                    <div class="result-text">
+                        ${getPlayerName(guesser)} ha indovinato<br>
+                        usando ${gameState.usedClues.length} indizi su ${gameState.selectedFish.facts.length}
+                    </div>
+                `;
+            } else {
+                resultBox.innerHTML = `
+                    <div class="result-title">❌ Risposta Sbagliata</div>
+                    <div class="fish-name">${gameState.selectedFish.commonName.it}</div>
+                    <div class="fish-common">${gameState.selectedFish.commonName.en}</div>
+                    <div class="points-earned" style="color: #999; font-size: 1.5em;">0 Punti</div>
+                    <div class="result-text">
+                        Era il ${gameState.selectedFish.commonName.it}
+                    </div>
+                `;
+            }
+            
+            updateScores();
+        }
+
+        function nextRound(mode) {
+            gameState.currentRound++;
+            switchPlayer();
+            
+            if (mode === 'clue') {
+                startClueMode();
+            } else if (mode === 'photo') {
+                startPhotoMode();
+            }
+        }
+
+        // ============================================
+        // PHOTO MODE
+        // ============================================
+        function startPhotoMode() {
+            gameState.selectedFish = getRandomFish();
+            gameState.guessed = false;
+            
+            // Get 4 random choices
+            const choices = [gameState.selectedFish];
+            while (choices.length < 4) {
+                const random = getRandomFish();
+                if (!choices.find(f => f.id === random.id)) {
+                    choices.push(random);
+                }
+            }
+            gameState.photoChoices = choices.sort(() => Math.random() - 0.5);
+            
+            showScreen('photoScreen');
+            showPhotoGame();
+        }
+
+        function showPhotoGame() {
+            document.getElementById('photoGameView').style.display = 'block';
+            document.getElementById('photoResultView').style.display = 'none';
+            
+            document.getElementById('photoPlayerName').textContent = 
+                getPlayerName(gameState.currentPlayer) + ' ' + getPlayerEmoji(gameState.currentPlayer);
+            
+            document.getElementById('photoImage').style.backgroundImage = 
+                `url('${gameState.selectedFish.image}')`;
+            
+            const choices = document.getElementById('photoChoices');
+            choices.innerHTML = '';
+            gameState.photoChoices.forEach((fish, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = fish.commonName.it;
+                btn.onclick = () => selectPhotoChoice(idx);
+                choices.appendChild(btn);
+            });
+        }
+
+        function selectPhotoChoice(idx) {
+            if (gameState.guessed) return;
+            
+            gameState.guessed = true;
+            
+            const correct = gameState.photoChoices[idx].id === gameState.selectedFish.id;
+            const buttons = document.querySelectorAll('.choice-btn');
+            
+            buttons.forEach((btn, i) => {
+                if (i === idx) {
+                    btn.classList.add(correct ? 'correct' : 'wrong');
+                } else if (gameState.photoChoices[i].id === gameState.selectedFish.id) {
+                    btn.classList.add('correct');
+                }
+            });
+            
+            if (correct) {
+                gameState.scores[`player${gameState.currentPlayer}`] += 15;
+            }
+            
+            setTimeout(() => {
+                showPhotoResult(correct);
+            }, 1500);
+        }
+
+        function showPhotoResult(correct) {
+            document.getElementById('photoGameView').style.display = 'none';
+            document.getElementById('photoResultView').style.display = 'block';
+            
+            const resultBox = document.getElementById('photoResultBox');
+            
+            if (correct) {
+                resultBox.innerHTML = `
+                    <div class="result-title">✅ Corretto!</div>
+                    <div class="fish-name">${gameState.selectedFish.commonName.it}</div>
+                    <div class="points-earned">+ 15 Punti! 🎉</div>
+                `;
+            } else {
+                resultBox.innerHTML = `
+                    <div class="result-title">❌ Sbagliato!</div>
+                    <div class="fish-name">${gameState.selectedFish.commonName.it}</div>
+                    <div class="fish-common">${gameState.selectedFish.commonName.en}</div>
+                    <div class="points-earned" style="color: #999;">0 Punti</div>
+                `;
+            }
+            
+            updateScores();
+        }
+
+        // ============================================
+        // QUIZ MODE
+        // ============================================
+        function startQuizMode() {
+            gameState.quizIndex = 0;
+            showScreen('quizScreen');
+            
+            document.getElementById('quizView').style.display = 'block';
+            document.getElementById('quizTotal').textContent = fishes.length;
+            
+            showQuizCard();
+        }
+
+        function showQuizCard() {
+            const fish = fishes[gameState.quizIndex];
+            
+            document.getElementById('quizProgress').textContent = gameState.quizIndex + 1;
+            document.getElementById('flashcardFront').textContent = fish.commonName.it;
+            
+            let backContent = `
+                <div><strong>${fish.commonName.en}</strong></div>
+                <div style="font-size: 0.85em; font-style: italic; color: #666; margin-top: 5px;">${fish.scientificName}</div>
+                <div style="margin-top: 10px; text-align: left; font-size: 0.8em;">
+                    <div><strong>Habitat:</strong> ${fish.habitat}</div>
+                    <div><strong>Profondità:</strong> ${fish.depth}</div>
+                    <div><strong>Taglia:</strong> ${fish.size}</div>
+                </div>
+            `;
+            
+            document.getElementById('flashcardBack').innerHTML = backContent;
+            
+            // Reset flip
+            document.getElementById('flashcardInner').classList.remove('flipped');
+        }
+
+        function toggleFlashcard() {
+            document.getElementById('flashcardInner').classList.toggle('flipped');
+        }
+
+        function nextQuizCard() {
+            if (gameState.quizIndex < fishes.length - 1) {
+                gameState.quizIndex++;
+                showQuizCard();
+            }
+        }
+
+        function previousQuizCard() {
+            if (gameState.quizIndex > 0) {
+                gameState.quizIndex--;
+                showQuizCard();
+            }
+        }
+
+        // ============================================
+        // NAVIGATION
+        // ============================================
+        function goToMenu() {
+            showScreen('mainMenuScreen');
+            updateScores();
+        }
+
+        function resetScores() {
+            if (confirm('Azzera i punteggi? Non si può tornare indietro!')) {
+                gameState.scores.player1 = 0;
+                gameState.scores.player2 = 0;
+                updateScores();
+            }
+        }
+
+        // Event listeners
+        document.getElementById('backBtn').addEventListener('click', goToMenu);
+        document.getElementById('flashcard').addEventListener('click', toggleFlashcard);
+        document.getElementById('readyForCluesBtn').addEventListener('click', readyForClues);
+
+        // Initialize
+        loadScores();
+        updateScores();
+    </script>
+</body>
+</html>
